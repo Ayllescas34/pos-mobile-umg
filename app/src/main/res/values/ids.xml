@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- IDs comunes a todas las pantallas que heredan de BaseApiActivity -->
+    <item name="progreso" type="id" />
+    <item name="txtEstado" type="id" />
+</resources>

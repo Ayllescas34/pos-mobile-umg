@@ -62,10 +62,11 @@ class LoginActivity : AppCompatActivity() {
                 )
 
                 SessionManager.iniciarSesion(respuesta.token)
+                SessionManager.guardarUsuario(respuesta.usuario)
 
                 val intent = Intent(
                     this@LoginActivity,
-                    MainActivity::class.java
+                    MenuActivity::class.java
                 )
 
                 startActivity(intent)
