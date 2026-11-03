@@ -12,107 +12,175 @@
         android:padding="24dp">
 
         <TextView
-            android:id="@+id/txtTitulo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="Registro de clientes"
+            android:text="Clientes"
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnCerrarSesion"
-            android:layout_width="wrap_content"
+        <!-- Búsqueda -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginBottom="16dp"
-            android:text="Cerrar sesión" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/txtBuscar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Nombre, NIT o ID"
+                android:imeOptions="actionSearch"
+                android:inputType="text" />
+
+            <Button
+                android:id="@+id/btnBuscar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Buscar" />
+        </LinearLayout>
+
+        <!-- Formulario -->
+        <TextView
+            android:id="@+id/txtSeleccion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Nuevo cliente"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/txtNombre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="Nombre completo"
-            android:inputType="textCapWords" />
+            android:hint="Nombre o razón social"
+            android:inputType="textPersonName|textCapWords"
+            android:maxLength="150" />
 
         <EditText
             android:id="@+id/txtNit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="NIT"
-            android:inputType="text" />
+            android:hint="NIT (o CF para consumidor final)"
+            android:inputType="textCapCharacters|textNoSuggestions"
+            android:maxLength="20" />
+
         <EditText
             android:id="@+id/txtDireccion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="Dirección"
-            android:inputType="textPostalAddress" />
+            android:hint="Dirección (opcional)"
+            android:inputType="textPostalAddress|textMultiLine" />
 
         <EditText
             android:id="@+id/txtTelefono"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="Teléfono"
-            android:inputType="phone" />
+            android:hint="Teléfono (opcional)"
+            android:inputType="phone"
+            android:maxLength="20" />
 
         <EditText
             android:id="@+id/txtCorreo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:hint="Correo electrónico"
-            android:inputType="textEmailAddress" />
+            android:layout_marginBottom="16dp"
+            android:hint="Correo electrónico (opcional)"
+            android:inputType="textEmailAddress"
+            android:maxLength="100" />
 
-        <Button
-            android:id="@+id/btnGuardar"
+        <!-- Acciones -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Guardar cliente" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnBuscar"
+            <Button
+                android:id="@+id/btnNuevo"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="Nuevo / Limpiar" />
+
+            <Button
+                android:id="@+id/btnGuardar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="Guardar" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Buscar cliente" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btnLimpiar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Limpiar formulario" />
+            <Button
+                android:id="@+id/btnActualizar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="Actualizar" />
+
+            <Button
+                android:id="@+id/btnEliminar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/boton_peligro"
+                android:text="Eliminar" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnListar"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Listar todos los clientes" />
+            android:text="Listar / Recargar" />
 
-        <Button
-            android:id="@+id/btnActualizar"
-            android:layout_width="match_parent"
+        <ProgressBar
+            android:id="@+id/progreso"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Actualizar cliente" />
-
-        <Button
-            android:id="@+id/btnEliminar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Eliminar cliente" />
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
 
         <TextView
-            android:id="@+id/txtResultado"
+            android:id="@+id/txtEstado"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:padding="8dp"
-            android:gravity="top"
-            android:text="Aquí aparecerán los resultados"
-            android:textSize="16sp" />
+            android:layout_marginTop="8dp"
+            android:textSize="15sp" />
+
+        <!-- Listado -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Listado (toca un cliente para editarlo)"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/listaClientes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
 
     </LinearLayout>
 </ScrollView>

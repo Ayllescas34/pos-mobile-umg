@@ -174,7 +174,9 @@ class VentaActivity : BaseApiActivity() {
         configurarSpinner(
             spCliente,
             listOf(Opcion(null, "Sin cliente")) +
-                    clientes.map { Opcion(it.id, "${it.nombre} (NIT ${it.nit})") },
+                    clientes.map {
+                        Opcion(it.id, "${it.nombre} (NIT ${it.nit?.takeIf { n -> n.isNotBlank() } ?: "—"})")
+                    },
             idSeleccionado(spCliente)
         )
 

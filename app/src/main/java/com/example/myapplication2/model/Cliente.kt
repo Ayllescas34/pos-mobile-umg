@@ -7,11 +7,11 @@ data class Cliente(
     val id: Int,
 
     val nombre: String,
-    val nit: String,
-    val telefono: String,
+    val nit: String?,
+    val telefono: String?,
 
     @SerializedName("email")
-    val correo: String,
+    val correo: String?,
 
-    val direccion: String = ""
+    val direccion: String?
 )

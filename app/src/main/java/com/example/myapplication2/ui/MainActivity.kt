@@ -1,625 +1,283 @@
 package com.example.myapplication2.ui
 
 import android.os.Bundle
+import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.myapplication2.R
 import com.example.myapplication2.model.Cliente
-import androidx.lifecycle.lifecycleScope
-import com.example.myapplication2.network.RetrofitClient
-import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import com.example.myapplication2.model.ClienteRequest
-import androidx.appcompat.app.AlertDialog
-import android.content.Intent
-import com.example.myapplication2.session.SessionManager
+import com.example.myapplication2.network.RetrofitClient
 
-class MainActivity : AppCompatActivity() {
+/** Pantalla de Clientes (se conserva el nombre MainActivity). */
+class MainActivity : BaseApiActivity() {
 
-    // Propiededas
+    companion object {
+        // NIT genérico de "Consumidor Final"; puede repetirse
+        private const val NIT_CONSUMIDOR_FINAL = "CF"
+    }
+
+    private lateinit var txtBuscar: EditText
+    private lateinit var txtSeleccion: TextView
     private lateinit var nombre: EditText
     private lateinit var nit: EditText
     private lateinit var direccion: EditText
     private lateinit var telefono: EditText
     private lateinit var correo: EditText
-    private lateinit var resultado: TextView
-    private lateinit var btnGuardar: Button
+    private lateinit var listaClientes: LinearLayout
+
     private lateinit var btnBuscar: Button
-    private lateinit var btnLimpiar: Button
-    private lateinit var btnListar: Button
+    private lateinit var btnNuevo: Button
+    private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
     private lateinit var btnEliminar: Button
-    private lateinit var btnCerrarSesion: Button
+    private lateinit var btnListar: Button
 
+    // Caché en memoria de lo descargado desde la API
     private val clientes = mutableListOf<Cliente>()
+    private var filtro = ""
+    private var seleccionado: Cliente? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        if (!prepararPantalla(R.layout.activity_main)) return
 
-        /*CRUD*/
+        txtBuscar = findViewById(R.id.txtBuscar)
+        txtSeleccion = findViewById(R.id.txtSeleccion)
         nombre = findViewById(R.id.txtNombre)
         nit = findViewById(R.id.txtNit)
         direccion = findViewById(R.id.txtDireccion)
         telefono = findViewById(R.id.txtTelefono)
         correo = findViewById(R.id.txtCorreo)
-        resultado = findViewById(R.id.txtResultado)
+        listaClientes = findViewById(R.id.listaClientes)
 
-        btnGuardar = findViewById(R.id.btnGuardar)
         btnBuscar = findViewById(R.id.btnBuscar)
-        btnLimpiar = findViewById(R.id.btnLimpiar)
-        btnListar = findViewById(R.id.btnListar)
+        btnNuevo = findViewById(R.id.btnNuevo)
+        btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
-        btnCerrarSesion = findViewById(R.id.btnCerrarSesion)
+        btnListar = findViewById(R.id.btnListar)
 
-        //inicializaClientes()
-        /*resultado.movementMethod =
-            android.text.method.ScrollingMovementMethod()*/
-        cargarClientesDesdeApi()
-
-        btnGuardar.setOnClickListener {
-            guardarCliente()
-        }
-        btnBuscar.setOnClickListener {
-            buscarCliente()
-        }
-        btnLimpiar.setOnClickListener {
-            limpiarFormulario()
-        }
+        btnBuscar.setOnClickListener { buscarCliente() }
+        btnNuevo.setOnClickListener { limpiarFormulario() }
+        btnGuardar.setOnClickListener { guardarCliente() }
+        btnActualizar.setOnClickListener { actualizarCliente() }
+        btnEliminar.setOnClickListener { eliminarCliente() }
         btnListar.setOnClickListener {
-            listarClientes()
+            filtro = ""
+            txtBuscar.text.clear()
+            cargarClientesDesdeApi()
         }
-        btnActualizar.setOnClickListener {
-            actualizarCliente()
-        }
-        btnEliminar.setOnClickListener {
-            eliminarCliente()
-        }
-        btnCerrarSesion.setOnClickListener {
-            confirmarCierreSesion()
-        }
+
+        limpiarFormulario()
+        cargarClientesDesdeApi()
     }
 
-    /* Funciones para CRUD*/
-    private fun inicializaClientes() {
-        if (clientes.isNotEmpty()) return
+    override fun botonesAccion(): List<Button> =
+        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
-        clientes.add(
-            Cliente(
-                id = 1,
-                nombre = "Ana López",
-                nit = "1234567-8",
-                telefono = "55551234",
-                correo = "ana@ejemplo.com"
-            )
-        )
-
-        clientes.add(
-            Cliente(
-                id = 2,
-                nombre = "Carlos Pérez",
-                nit = "9876543-2",
-                telefono = "55556789",
-                correo = "carlos@ejemplo.com"
-            )
-        )
-
-        clientes.add(
-            Cliente(
-                id = 3,
-                nombre = "María García",
-                nit = "4567891-0",
-                telefono = "55559876",
-                correo = "maria@ejemplo.com"
-            )
-        )
-
+    override fun refrescarBotones() {
+        super.refrescarBotones()
+        btnGuardar.isEnabled = seleccionado == null
+        btnActualizar.isEnabled = seleccionado != null
+        btnEliminar.isEnabled = seleccionado != null
     }
 
-    private fun cargarClientesDesdeApi(){
+    private fun cargarClientesDesdeApi(mensajeFinal: String? = null) {
+        ejecutar("Cargando clientes desde la API...", "consultar los clientes") {
+            val respuesta = RetrofitClient.api.obtenerClientes()
 
-        resultado.text = "Cargando clientes desde la API..."
+            clientes.clear()
+            clientes.addAll(respuesta.data)
 
-        lifecycleScope.launch{
-            try{
-                val respuesta = RetrofitClient.api.obtenerClientes()
+            seleccionado = seleccionado?.let { actual -> clientes.find { it.id == actual.id } }
+            if (seleccionado == null) mostrarFormularioNuevo()
 
-                clientes.clear()
-                clientes.addAll(respuesta.data)
-
-
-                listarClientes()
-
-            } catch (error: HttpException) {
-                resultado.text =
-                    when (error.code()) {
-                        401 -> "La sesión no es válida o expiró."
-                        403 -> "No tienes permiso para consultar clientes."
-                        else -> "Error del servidor: ${error.code()}"
-                    }
-
-            } catch (error: IOException) {
-                resultado.text =
-                    "No se pudo conectar con la API.\n" +
-                            "Verifica que el servidor esté encendido."
-
-            } catch (error: Exception) {
-                resultado.text =
-                    "Ocurrió un error al cargar los clientes:\n${error.message}"
-            }
-
-        }
-    }
-
-    /*private fun guardarCliente() {
-        val nombreIngresado = nombre.text.toString().trim()
-        val nitIngresado = nit.text.toString().trim()
-        val telefonoIngresado = telefono.text.toString().trim()
-        val correoIngresado = correo.text.toString().trim()
-
-        if (nombreIngresado.length < 2) {
-            resultado.text = "Ingresa un nombre valido."
-        } else if (nitIngresado.isEmpty()) {
-            resultado.text = "Ingresa el Nit."
-        } else if (telefonoIngresado.isEmpty()) {
-            resultado.text = "Ingresa el telefono."
-        } else if (!correoIngresado.contains("@")) {
-            resultado.text = "Ingresa un email valido."
-        } else {
-            val cliente = Cliente(
-                id = siguienteId,
-                nombre = nombreIngresado,
-                nit = nitIngresado,
-                telefono = telefonoIngresado,
-                correo = correoIngresado
-            )
-            clientes.add(cliente)
-            siguienteId++
-            resultado.text =
-                "Cliente capturado correctamente\n\n" +
-                        "Nombre: $nombreIngresado\n" +
-                        "NIT: $nitIngresado\n" +
-                        "Teléfono: $telefonoIngresado\n" +
-                        "Correo: $correoIngresado"
-        }
-    }*/
-
-    private fun guardarCliente() {
-        val nombreIngresado = nombre.text.toString().trim()
-        val nitIngresado = nit.text.toString().trim()
-        val direccionIngresada = direccion.text.toString().trim()
-        val telefonoIngresado = telefono.text.toString().trim()
-        val correoIngresado = correo.text.toString().trim()
-
-        if (nombreIngresado.length < 2) {
-            resultado.text = "Ingresa un nombre válido."
-            return
-        }
-
-        if (nitIngresado.isEmpty()) {
-            resultado.text = "Ingresa el NIT."
-            return
-        }
-
-        if (direccionIngresada.isEmpty()) {
-            resultado.text = "Ingresa la dirección."
-            return
-        }
-
-        if (telefonoIngresado.isEmpty()) {
-            resultado.text = "Ingresa el teléfono."
-            return
-        }
-
-        if (!correoIngresado.contains("@")) {
-            resultado.text = "Ingresa un correo válido."
-            return
-        }
-
-        val nuevoCliente = ClienteRequest(
-            nit = nitIngresado,
-            nombre = nombreIngresado,
-            direccion = direccionIngresada,
-            email = correoIngresado,
-            telefono = telefonoIngresado
-        )
-
-        btnGuardar.isEnabled = false
-        resultado.text = "Guardando cliente..."
-
-        lifecycleScope.launch {
-            try {
-                val respuesta =
-                    RetrofitClient.api.guardarCliente(nuevoCliente)
-
-                if (respuesta.isSuccessful) {
-                    limpiarFormulario()
-                    resultado.text = "Cliente guardado correctamente."
-
-                    cargarClientesDesdeApi()
-                } else {
-                    val mensajeServidor =
-                        respuesta.errorBody()?.string()
-
-                    resultado.text =
-                        "No se pudo guardar.\n" +
-                                "Código: ${respuesta.code()}\n" +
-                                (mensajeServidor ?: "")
-                }
-
-            } catch (error: IOException) {
-                resultado.text =
-                    "No se pudo conectar con la API."
-
-            } catch (error: Exception) {
-                resultado.text =
-                    "Ocurrió un error al guardar:\n${error.message}"
-
-            } finally {
-                btnGuardar.isEnabled = true
+            mostrarListado()
+            if (mensajeFinal != null) {
+                mostrarMensaje(mensajeFinal)
+            } else {
+                mostrarInfo("Clientes registrados: ${clientes.size}")
             }
         }
     }
 
-    private fun limpiarFormulario() {
+    private fun coincide(cliente: Cliente, texto: String): Boolean {
+        return cliente.nombre.contains(texto, ignoreCase = true) ||
+                cliente.nit.orEmpty().equals(texto, ignoreCase = true) ||
+                cliente.id.toString() == texto
+    }
+
+    private fun mostrarListado() {
+        val visibles = if (filtro.isBlank()) clientes else clientes.filter { coincide(it, filtro) }
+
+        llenarLista(
+            listaClientes,
+            visibles,
+            esSeleccionado = { it.id == seleccionado?.id },
+            texto = { cliente ->
+                "#${cliente.id}  ${cliente.nombre}\n" +
+                        "NIT: ${cliente.nit?.takeIf { it.isNotBlank() } ?: "—"}" +
+                        "   Tel: ${cliente.telefono?.takeIf { it.isNotBlank() } ?: "—"}" +
+                        (cliente.correo?.takeIf { it.isNotBlank() }?.let { "\n$it" } ?: "") +
+                        (cliente.direccion?.takeIf { it.isNotBlank() }?.let { "\n$it" } ?: "")
+            },
+            alSeleccionar = { seleccionarCliente(it) }
+        )
+    }
+
+    private fun buscarCliente() {
+        filtro = txtBuscar.text.toString().trim()
+        mostrarListado()
+
+        if (filtro.isEmpty()) {
+            mostrarInfo("Mostrando todos los clientes: ${clientes.size}")
+            return
+        }
+
+        val encontrados = clientes.filter { coincide(it, filtro) }
+
+        when (encontrados.size) {
+            0 -> {
+                // Evita que quede seleccionado un registro que ya no se ve
+                mostrarFormularioNuevo()
+                refrescarBotones()
+                mostrarMensaje("No se encontraron clientes con \"$filtro\".", true)
+            }
+            1 -> seleccionarCliente(encontrados.first())
+            else -> mostrarInfo("Se encontraron ${encontrados.size} clientes. Toca uno para editarlo.")
+        }
+    }
+
+    private fun seleccionarCliente(cliente: Cliente) {
+        seleccionado = cliente
+        txtSeleccion.text = "Editando cliente ID ${cliente.id}"
+        nombre.setText(cliente.nombre)
+        nit.setText(cliente.nit.orEmpty())
+        direccion.setText(cliente.direccion.orEmpty())
+        telefono.setText(cliente.telefono.orEmpty())
+        correo.setText(cliente.correo.orEmpty())
+        mostrarListado()
+        refrescarBotones()
+        mostrarInfo("Cliente seleccionado: ${cliente.nombre}")
+    }
+
+    private fun mostrarFormularioNuevo() {
+        seleccionado = null
+        txtSeleccion.text = "Nuevo cliente"
         nombre.text.clear()
         nit.text.clear()
         direccion.text.clear()
         telefono.text.clear()
         correo.text.clear()
-        resultado.text = "Aquí aparecerán los resultados"
-    }
-    /*private fun buscarCliente() {
-        val nitBuscado = nit.text.toString().trim()
-
-        if (nitBuscado.isEmpty()) {
-            resultado.text = "Ingresa el NIT que deseas buscar."
-            return
-        }
-
-        val clienteEncontrado = clientes.find {
-            it.nit.equals(nitBuscado, ignoreCase = true)
-        }
-
-        if (clienteEncontrado != null) {
-            resultado.text =
-                "Cliente encontrado\n\n" +
-                        "ID: ${clienteEncontrado.id}\n" +
-                        "Nombre: ${clienteEncontrado.nombre}\n" +
-                        "NIT: ${clienteEncontrado.nit}\n" +
-                        "Teléfono: ${clienteEncontrado.telefono}\n" +
-                        "Correo: ${clienteEncontrado.correo}"
-        } else {
-            resultado.text = "No se encontró un cliente con ese NIT."
-        }
-    }*/
-
-    private fun buscarCliente() {
-        val nitBuscado = nit.text.toString().trim()
-
-        if (nitBuscado.isEmpty()) {
-            resultado.text =
-                "Ingresa el NIT que deseas buscar."
-            return
-        }
-
-        val clienteEncontrado = clientes.find {
-            it.nit.equals(nitBuscado, ignoreCase = true)
-        }
-
-        if (clienteEncontrado == null) {
-            resultado.text =
-                "No se encontró un cliente con ese NIT."
-            return
-        }
-
-        nombre.setText(clienteEncontrado.nombre)
-        nit.setText(clienteEncontrado.nit)
-        direccion.setText(clienteEncontrado.direccion)
-        telefono.setText(clienteEncontrado.telefono)
-        correo.setText(clienteEncontrado.correo)
-
-        resultado.text =
-            "Cliente encontrado\n\n" +
-                    "ID: ${clienteEncontrado.id}\n" +
-                    "Nombre: ${clienteEncontrado.nombre}\n" +
-                    "NIT: ${clienteEncontrado.nit}\n" +
-                    "Dirección: ${clienteEncontrado.direccion}\n" +
-                    "Teléfono: ${clienteEncontrado.telefono}\n" +
-                    "Correo: ${clienteEncontrado.correo}"
     }
 
-    private fun listarClientes() {
-        if (clientes.isEmpty()) {
-            resultado.text = "No hay clientes registrados."
-            return
-        }
-
-        val listado = clientes.joinToString(
-            separator = "\n\n"
-        ) { cliente ->
-            "ID: ${cliente.id}\n" +
-                    "Nombre: ${cliente.nombre}\n" +
-                    "NIT: ${cliente.nit}\n" +
-                    "Dirección: ${cliente.direccion}\n" +
-                    "Teléfono: ${cliente.telefono}\n" +
-                    "Correo: ${cliente.correo}"
-        }
-
-        resultado.text =
-            "Clientes registrados: ${clientes.size}\n\n$listado"
+    private fun limpiarFormulario() {
+        mostrarFormularioNuevo()
+        if (::listaClientes.isInitialized) mostrarListado()
+        refrescarBotones()
+        mostrarInfo("Formulario listo para un nuevo cliente.")
     }
-    /*private fun actualizarCliente() {
-        val nitBuscado = nit.text.toString().trim()
 
-        if (nitBuscado.isEmpty()) {
-            resultado.text = "Ingresa el NIT del cliente que deseas actualizar."
-            return
-        }
-
-        val indice = clientes.indexOfFirst {
-            it.nit.equals(nitBuscado, ignoreCase = true)
-        }
-
-        if (indice == -1) {
-            resultado.text = "No se encontró un cliente con ese NIT."
-            return
-        }
-
+    private fun leerFormulario(idActual: Int?): ClienteRequest? {
         val nombreIngresado = nombre.text.toString().trim()
-        val telefonoIngresado = telefono.text.toString().trim()
-        val correoIngresado = correo.text.toString().trim()
-
-        if (nombreIngresado.length < 2) {
-            resultado.text = "Ingresa un nombre válido."
-            return
-        }
-
-        if (telefonoIngresado.isEmpty()) {
-            resultado.text = "Ingresa el teléfono."
-            return
-        }
-
-        if (!correoIngresado.contains("@")) {
-            resultado.text = "Ingresa un correo válido."
-            return
-        }
-
-        clientes[indice] = clientes[indice].copy(
-            nombre = nombreIngresado,
-            telefono = telefonoIngresado,
-            correo = correoIngresado
-        )
-
-        resultado.text = "Cliente actualizado correctamente."
-    }*/
-
-    private fun actualizarCliente() {
-        val nitBuscado = nit.text.toString().trim()
-        val nombreIngresado = nombre.text.toString().trim()
+        val nitIngresado = nit.text.toString().trim().uppercase()
         val direccionIngresada = direccion.text.toString().trim()
         val telefonoIngresado = telefono.text.toString().trim()
         val correoIngresado = correo.text.toString().trim()
 
-        if (nitBuscado.isEmpty()) {
-            resultado.text =
-                "Ingresa el NIT del cliente que deseas actualizar."
-            return
-        }
-
-        val clienteEncontrado = clientes.find {
-            it.nit.equals(nitBuscado, ignoreCase = true)
-        }
-
-        if (clienteEncontrado == null) {
-            resultado.text =
-                "No se encontró un cliente con ese NIT."
-            return
-        }
-
         if (nombreIngresado.length < 2) {
-            resultado.text = "Ingresa un nombre válido."
-            return
+            mostrarMensaje("Ingresa un nombre válido (mínimo 2 caracteres).", true)
+            return null
         }
 
-        if (direccionIngresada.isEmpty()) {
-            resultado.text = "Ingresa la dirección."
-            return
+        if (nitIngresado.isEmpty()) {
+            mostrarMensaje("Ingresa el NIT o \"CF\" para consumidor final.", true)
+            return null
         }
 
-        if (telefonoIngresado.isEmpty()) {
-            resultado.text = "Ingresa el teléfono."
-            return
+        if (nitIngresado.length > 20) {
+            mostrarMensaje("El NIT no puede tener más de 20 caracteres.", true)
+            return null
         }
 
-        if (!correoIngresado.contains("@")) {
-            resultado.text = "Ingresa un correo válido."
-            return
+        // El NIT identifica al cliente; solo "CF" puede repetirse
+        if (nitIngresado != NIT_CONSUMIDOR_FINAL &&
+            clientes.any { it.id != idActual && it.nit.equals(nitIngresado, ignoreCase = true) }
+        ) {
+            mostrarMensaje("Ya existe otro cliente con el NIT $nitIngresado.", true)
+            return null
         }
 
-        val datosActualizados = ClienteRequest(
-            nit = nitBuscado,
+        if (telefonoIngresado.length > 20) {
+            mostrarMensaje("El teléfono no puede tener más de 20 caracteres.", true)
+            return null
+        }
+
+        if (correoIngresado.isNotEmpty() &&
+            !Patterns.EMAIL_ADDRESS.matcher(correoIngresado).matches()
+        ) {
+            mostrarMensaje("Ingresa un correo válido o déjalo vacío.", true)
+            return null
+        }
+
+        return ClienteRequest(
+            nit = nitIngresado,
             nombre = nombreIngresado,
-            direccion = direccionIngresada,
-            email = correoIngresado,
-            telefono = telefonoIngresado
+            direccion = direccionIngresada.ifEmpty { null },
+            email = correoIngresado.ifEmpty { null },
+            telefono = telefonoIngresado.ifEmpty { null }
         )
+    }
 
-        btnActualizar.isEnabled = false
-        resultado.text = "Actualizando cliente..."
+    private fun guardarCliente() {
+        val datos = leerFormulario(null) ?: return
 
-        lifecycleScope.launch {
-            try {
-                val respuesta =
-                    RetrofitClient.api.actualizarCliente(
-                        idCliente = clienteEncontrado.id,
-                        cliente = datosActualizados
-                    )
-
-                if (respuesta.isSuccessful) {
-                    limpiarFormulario()
-                    resultado.text =
-                        "Cliente actualizado correctamente."
-
-                    cargarClientesDesdeApi()
-                } else {
-                    val mensajeServidor =
-                        respuesta.errorBody()?.string()
-
-                    resultado.text =
-                        "No se pudo actualizar.\n" +
-                                "Código: ${respuesta.code()}\n" +
-                                (mensajeServidor ?: "")
-                }
-
-            } catch (error: IOException) {
-                resultado.text =
-                    "No se pudo conectar con la API."
-
-            } catch (error: Exception) {
-                resultado.text =
-                    "Ocurrió un error al actualizar:\n${error.message}"
-
-            } finally {
-                btnActualizar.isEnabled = true
-            }
+        ejecutar("Guardando cliente...", "guardar el cliente") {
+            verificar(RetrofitClient.api.guardarCliente(datos), "guardar el cliente")
+            mostrarFormularioNuevo()
+            cargarClientesDesdeApi("Cliente guardado correctamente.")
         }
     }
 
-    /*private fun eliminarCliente() {
-        val nitBuscado = nit.text.toString().trim()
-
-        if (nitBuscado.isEmpty()) {
-            resultado.text = "Ingresa el NIT del cliente que deseas eliminar."
+    private fun actualizarCliente() {
+        val cliente = seleccionado ?: run {
+            mostrarMensaje("Selecciona un cliente del listado.", true)
             return
         }
+        val datos = leerFormulario(cliente.id) ?: return
 
-        val indice = clientes.indexOfFirst {
-            it.nit.equals(nitBuscado, ignoreCase = true)
+        ejecutar("Actualizando cliente...", "actualizar el cliente") {
+            verificar(
+                RetrofitClient.api.actualizarCliente(cliente.id, datos),
+                "actualizar el cliente"
+            )
+            cargarClientesDesdeApi("Cliente actualizado correctamente.")
         }
-
-        if (indice == -1) {
-            resultado.text = "No se encontró un cliente con ese NIT."
-            return
-        }
-
-        val clienteEliminado = clientes.removeAt(indice)
-
-        resultado.text =
-            "Cliente eliminado correctamente.\n\n" +
-                    "Nombre: ${clienteEliminado.nombre}\n" +
-                    "NIT: ${clienteEliminado.nit}"
-    }*/
+    }
 
     private fun eliminarCliente() {
-        val nitBuscado = nit.text.toString().trim()
-
-        if (nitBuscado.isEmpty()) {
-            resultado.text =
-                "Ingresa el NIT del cliente que deseas eliminar."
+        val cliente = seleccionado ?: run {
+            mostrarMensaje("Selecciona un cliente del listado.", true)
             return
         }
 
-        val clienteEncontrado = clientes.find {
-            it.nit.equals(nitBuscado, ignoreCase = true)
-        }
-
-        if (clienteEncontrado == null) {
-            resultado.text =
-                "No se encontró un cliente con ese NIT."
-            return
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Confirmar eliminación")
-            .setMessage(
-                "¿Deseas eliminar a ${clienteEncontrado.nombre}?\n\n" +
-                        "NIT: ${clienteEncontrado.nit}"
-            )
-            .setPositiveButton("Eliminar") { _, _ ->
-                enviarEliminacion(clienteEncontrado)
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun enviarEliminacion(cliente: Cliente) {
-        btnEliminar.isEnabled = false
-        resultado.text = "Eliminando cliente..."
-
-        lifecycleScope.launch {
-            try {
-                val respuesta =
-                    RetrofitClient.api.eliminarCliente(cliente.id)
-
-                if (respuesta.isSuccessful) {
-                    limpiarFormulario()
-                    resultado.text =
-                        "Cliente eliminado correctamente."
-
-                    cargarClientesDesdeApi()
-                } else {
-                    val mensajeServidor =
-                        respuesta.errorBody()?.string()
-
-                    resultado.text =
-                        "No se pudo eliminar.\n" +
-                                "Código: ${respuesta.code()}\n" +
-                                (mensajeServidor ?: "")
-                }
-
-            } catch (error: IOException) {
-                resultado.text =
-                    "No se pudo conectar con la API."
-
-            } catch (error: Exception) {
-                resultado.text =
-                    "Ocurrió un error al eliminar:\n${error.message}"
-
-            } finally {
-                btnEliminar.isEnabled = true
+        confirmar(
+            "Confirmar eliminación",
+            "¿Deseas eliminar a ${cliente.nombre} (NIT ${cliente.nit ?: "—"})?\n\n" +
+                    "No se podrá eliminar si tiene ventas registradas.",
+            "Eliminar"
+        ) {
+            ejecutar("Eliminando cliente...", "eliminar el cliente") {
+                verificar(
+                    RetrofitClient.api.eliminarCliente(cliente.id),
+                    "eliminar el cliente"
+                )
+                mostrarFormularioNuevo()
+                cargarClientesDesdeApi("Cliente eliminado correctamente.")
             }
         }
     }
-
-    private fun confirmarCierreSesion() {
-        AlertDialog.Builder(this)
-            .setTitle("Cerrar sesión")
-            .setMessage("¿Deseas cerrar la sesión actual?")
-            .setPositiveButton("Cerrar sesión") { _, _ ->
-                cerrarSesion()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun cerrarSesion() {
-        SessionManager.cerrarSesion()
-
-        val intent = Intent(
-            this,
-            LoginActivity::class.java
-        ).apply {
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        startActivity(intent)
-        finish()
-    }
-
 }
