@@ -3,63 +3,113 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/pos_tarjeta"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:orientation="vertical">
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/encabezado"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:background="@color/pos_lateral"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingHorizontal="28dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Punto de Venta"
+                android:textColor="@color/white"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Ventas, inventario y clientes\nen un solo lugar."
+                android:textColor="@color/pos_lateral_texto"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:gravity="center"
-            android:text="Iniciar sesión"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:padding="28dp">
 
-        <EditText
-            android:id="@+id/txtUsuario"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:hint="Usuario"
-            android:inputType="text" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bienvenido"
+                android:textColor="@color/pos_texto"
+                android:textSize="26sp"
+                android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/txtPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:hint="Contraseña"
-            android:inputType="textPassword" />
+            <TextView
+                style="@style/Pos.Ayuda"
+                android:layout_marginBottom="24dp"
+                android:text="Ingresa tus datos para continuar."
+                android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Iniciar sesión" />
+            <TextView
+                style="@style/Pos.Etiqueta"
+                android:text="Usuario" />
 
-        <ProgressBar
-            android:id="@+id/progressLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-            android:visibility="gone" />
+            <EditText
+                android:id="@+id/txtUsuario"
+                style="@style/Pos.Campo"
+                android:importantForAutofill="no"
+                android:inputType="textNoSuggestions"
+                android:hint="Tu usuario" />
 
-        <TextView
-            android:id="@+id/txtMensajeLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:textColor="#C62828"
-            android:textSize="15sp" />
+            <TextView
+                style="@style/Pos.Etiqueta"
+                android:text="Contraseña" />
 
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Pos.Clave">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:importantForAutofill="no"
+                    android:inputType="textPassword"
+                    android:paddingVertical="0dp"
+                    android:textColor="@color/pos_texto"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogin"
+                style="@style/Pos.Boton"
+                android:layout_width="match_parent"
+                android:layout_marginTop="24dp"
+                android:text="Iniciar sesión" />
+
+            <ProgressBar
+                android:id="@+id/progressLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:indeterminateTint="@color/pos_principal"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtMensajeLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textColor="@color/pos_peligro"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
-
 </ScrollView>

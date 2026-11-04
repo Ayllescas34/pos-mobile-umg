@@ -19,7 +19,6 @@ class SucursalActivity : BaseApiActivity() {
     private lateinit var txtTelefono: EditText
     private lateinit var listaSucursales: LinearLayout
 
-    private lateinit var btnBuscar: Button
     private lateinit var btnNuevo: Button
     private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
@@ -33,7 +32,7 @@ class SucursalActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_sucursal)) return
+        if (!prepararPantalla(R.layout.activity_sucursal, "Sucursales", "Administra los puntos de venta.")) return
 
         txtBuscar = findViewById(R.id.txtBuscar)
         txtSeleccion = findViewById(R.id.txtSeleccion)
@@ -42,14 +41,13 @@ class SucursalActivity : BaseApiActivity() {
         txtTelefono = findViewById(R.id.txtTelefono)
         listaSucursales = findViewById(R.id.listaSucursales)
 
-        btnBuscar = findViewById(R.id.btnBuscar)
         btnNuevo = findViewById(R.id.btnNuevo)
         btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
         btnListar = findViewById(R.id.btnListar)
 
-        btnBuscar.setOnClickListener { buscarSucursal() }
+        buscarAlEscribir(txtBuscar) { buscarSucursal() }
         btnNuevo.setOnClickListener { limpiarFormulario() }
         btnGuardar.setOnClickListener { guardarSucursal() }
         btnActualizar.setOnClickListener { actualizarSucursal() }
@@ -65,7 +63,7 @@ class SucursalActivity : BaseApiActivity() {
     }
 
     override fun botonesAccion(): List<Button> =
-        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
+        listOf(btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
     override fun refrescarBotones() {
         super.refrescarBotones()
@@ -125,15 +123,17 @@ class SucursalActivity : BaseApiActivity() {
 
         val encontradas = sucursales.filter { coincide(it, filtro) }
 
-        when (encontradas.size) {
-            0 -> {
-                // Evita que quede seleccionado un registro que ya no se ve
+        // Evita que quede seleccionado un registro que ya no se ve
+        seleccionada?.let { actual ->
+            if (actual !in encontradas) {
                 mostrarFormularioNuevo()
                 refrescarBotones()
-                mostrarMensaje("No se encontraron sucursales con \"$filtro\".", true)
             }
-            1 -> seleccionarSucursal(encontradas.first())
-            else -> mostrarInfo("Se encontraron ${encontradas.size} sucursales. Toca una para editarla.")
+        }
+
+        when (encontradas.size) {
+            0 -> mostrarMensaje("No se encontraron sucursales con \"$filtro\".", true)
+            else -> mostrarInfo("Resultados: ${encontradas.size}. Toca uno para editarlo.")
         }
     }
 

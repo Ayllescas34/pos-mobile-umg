@@ -1,202 +1,219 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="@color/pos_fondo"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <include layout="@layout/encabezado" />
+
+    <include layout="@layout/estado" />
+
+    <ScrollView
+        android:id="@+id/desplazamiento"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"
-            android:text="Usuarios"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <!-- Búsqueda -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <EditText
-                android:id="@+id/txtBuscar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Nombre, usuario o ID"
-                android:imeOptions="actionSearch"
-                android:inputType="text" />
+            <LinearLayout
+                style="@style/Pos.Tarjeta">
 
-            <Button
-                android:id="@+id/btnBuscar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Buscar" />
+                <TextView
+                    android:id="@+id/txtSeleccion"
+                    style="@style/Pos.TituloTarjeta"
+                    android:text="Nuevo usuario" />
+
+                <TextView
+                    style="@style/Pos.Etiqueta"
+                    android:text="Nombre completo" />
+
+                <EditText
+                    android:id="@+id/txtNombre"
+                    style="@style/Pos.Campo"
+                    android:importantForAutofill="no"
+                    android:inputType="textPersonName|textCapWords"
+                    android:maxLength="100" />
+
+                <TextView
+                    style="@style/Pos.Etiqueta"
+                    android:text="Usuario" />
+
+                <EditText
+                    android:id="@+id/txtUsuario"
+                    style="@style/Pos.Campo"
+                    android:importantForAutofill="no"
+                    android:inputType="textNoSuggestions"
+                    android:maxLength="50" />
+
+                <TextView
+                    style="@style/Pos.Etiqueta"
+                    android:text="Contraseña" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Pos.Clave">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/txtPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:importantForAutofill="no"
+                        android:inputType="textPassword"
+                        android:paddingVertical="0dp"
+                        android:textColor="@color/pos_texto"
+                        android:textSize="15sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/txtAyudaPassword"
+                    style="@style/Pos.Ayuda"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Pos.Etiqueta"
+                            android:text="Rol" />
+
+                        <Spinner
+                            android:id="@+id/spRol"
+                            style="@style/Pos.Lista" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Pos.Etiqueta"
+                            android:text="Sucursal" />
+
+                        <Spinner
+                            android:id="@+id/spSucursal"
+                            style="@style/Pos.Lista" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNuevo"
+                        style="@style/Pos.Boton.Secundario"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="Nuevo" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGuardar"
+                        style="@style/Pos.Boton.Exito"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Guardar" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnActualizar"
+                        style="@style/Pos.Boton"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="Actualizar" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEliminar"
+                        style="@style/Pos.Boton.Peligro"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Eliminar" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/Pos.Tarjeta">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Listado"
+                        android:textColor="@color/pos_texto"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnListar"
+                        style="@style/Pos.Boton.Secundario"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:paddingHorizontal="14dp"
+                        android:text="Recargar"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/txtBuscar"
+                    style="@style/Pos.Campo"
+                    android:drawablePadding="8dp"
+                    android:drawableStart="@drawable/ic_buscar"
+                    android:hint="Buscar por nombre, usuario o ID..."
+                    android:imeOptions="actionSearch"
+                    android:importantForAutofill="no"
+                    android:inputType="text" />
+
+                <TextView
+                    style="@style/Pos.Etiqueta"
+                    android:text="Filtrar por rol" />
+
+                <Spinner
+                    android:id="@+id/spFiltroRol"
+                    style="@style/Pos.Lista" />
+
+                <LinearLayout
+                    android:id="@+id/listaUsuarios"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
         </LinearLayout>
-
-        <Spinner
-            android:id="@+id/spFiltroRol"
-            android:layout_width="match_parent"
-            android:layout_height="48dp" />
-
-        <!-- Formulario -->
-        <TextView
-            android:id="@+id/txtSeleccion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="Nuevo usuario"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/txtNombre"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:hint="Nombre completo"
-            android:inputType="textPersonName|textCapWords"
-            android:maxLength="100" />
-
-        <EditText
-            android:id="@+id/txtUsuario"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:hint="Usuario"
-            android:inputType="textNoSuggestions"
-            android:maxLength="50" />
-
-        <EditText
-            android:id="@+id/txtPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Contraseña"
-            android:importantForAutofill="no"
-            android:inputType="textPassword" />
-
-        <TextView
-            android:id="@+id/txtAyudaPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:textSize="13sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Rol" />
-
-        <Spinner
-            android:id="@+id/spRol"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sucursal" />
-
-        <Spinner
-            android:id="@+id/spSucursal"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Acciones -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnNuevo"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:text="Nuevo / Limpiar" />
-
-            <Button
-                android:id="@+id/btnGuardar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:text="Guardar" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnActualizar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:text="Actualizar" />
-
-            <Button
-                android:id="@+id/btnEliminar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/boton_peligro"
-                android:text="Eliminar" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btnListar"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Listar / Recargar" />
-
-        <ProgressBar
-            android:id="@+id/progreso"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="8dp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/txtEstado"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="15sp" />
-
-        <!-- Listado -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Listado (toca un usuario para editarlo)"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/listaUsuarios"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

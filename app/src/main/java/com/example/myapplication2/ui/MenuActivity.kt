@@ -2,41 +2,42 @@ package com.example.myapplication2.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.myapplication2.R
+import com.example.myapplication2.network.RetrofitClient
 import com.example.myapplication2.session.SessionManager
 
-class MenuActivity : AppCompatActivity() {
+class MenuActivity : BaseApiActivity() {
+
+    companion object {
+        private const val STOCK_BAJO = 10
+    }
+
+    private lateinit var lblVentas: TextView
+    private lateinit var lblIngresos: TextView
+    private lateinit var lblProductos: TextView
+    private lateinit var lblProductosAyuda: TextView
+    private lateinit var lblClientes: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_menu)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        if (!prepararPantalla(R.layout.activity_menu)) return
 
-        if (!SessionManager.haySesion()) {
-            cerrarSesion()
-            return
-        }
+        lblVentas = findViewById(R.id.lblVentas)
+        lblIngresos = findViewById(R.id.lblIngresos)
+        lblProductos = findViewById(R.id.lblProductos)
+        lblProductosAyuda = findViewById(R.id.lblProductosAyuda)
+        lblClientes = findViewById(R.id.lblClientes)
 
         val usuario = SessionManager.obtenerUsuario()
+
         findViewById<TextView>(R.id.txtBienvenida).text =
-            if (usuario == null) {
-                "Bienvenido"
-            } else {
-                "Bienvenido, ${usuario.nombre}" +
-                        (usuario.rol?.let { "\nRol: $it" } ?: "")
-            }
+            if (usuario == null) "Bienvenido" else "Hola, ${usuario.nombre}"
+
+        findViewById<TextView>(R.id.txtUsuarioMenu).text = usuario?.rol.orEmpty()
 
         abrirAlPulsar(R.id.btnMenuClientes, MainActivity::class.java)
         abrirAlPulsar(R.id.btnMenuCategorias, CategoriaActivity::class.java)
@@ -45,13 +46,40 @@ class MenuActivity : AppCompatActivity() {
         abrirAlPulsar(R.id.btnMenuUsuarios, UsuarioActivity::class.java)
         abrirAlPulsar(R.id.btnMenuVentas, VentaActivity::class.java)
 
-        findViewById<Button>(R.id.btnMenuCerrarSesion).setOnClickListener {
+        findViewById<View>(R.id.btnMenuCerrarSesion).setOnClickListener {
             confirmarCierreSesion()
         }
     }
 
+    // El resumen se actualiza cada vez que se regresa al inicio
+    override fun onResume() {
+        super.onResume()
+        if (SessionManager.haySesion()) cargarResumen()
+    }
+
+    override fun botonesAccion(): List<Button> = emptyList()
+
+    private fun cargarResumen() {
+        ejecutar("Actualizando resumen...", "consultar el resumen") {
+            val api = RetrofitClient.api
+            val ventas = api.obtenerVentas().data
+            val productos = api.obtenerProductos().data
+            val clientes = api.obtenerClientes().data
+            val stockBajo = productos.count { it.stock <= STOCK_BAJO }
+
+            lblVentas.text = ventas.size.toString()
+            lblIngresos.text = dinero(ventas.sumOf { it.total })
+            lblProductos.text = productos.size.toString()
+            lblClientes.text = clientes.size.toString()
+            lblProductosAyuda.text =
+                if (stockBajo == 0) "stock en buen nivel" else "$stockBajo con poco stock"
+
+            mostrarInfo("Resumen actualizado.")
+        }
+    }
+
     private fun abrirAlPulsar(idBoton: Int, pantalla: Class<*>) {
-        findViewById<Button>(idBoton).setOnClickListener {
+        findViewById<View>(idBoton).setOnClickListener {
             startActivity(Intent(this, pantalla))
         }
     }
@@ -61,25 +89,9 @@ class MenuActivity : AppCompatActivity() {
             .setTitle("Cerrar sesión")
             .setMessage("¿Deseas cerrar la sesión actual?")
             .setPositiveButton("Cerrar sesión") { _, _ ->
-                cerrarSesion()
+                irALogin()
             }
             .setNegativeButton("Cancelar", null)
             .show()
-    }
-
-    private fun cerrarSesion() {
-        SessionManager.cerrarSesion()
-
-        val intent = Intent(
-            this,
-            LoginActivity::class.java
-        ).apply {
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        startActivity(intent)
-        finish()
     }
 }

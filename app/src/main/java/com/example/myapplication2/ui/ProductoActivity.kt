@@ -14,6 +14,10 @@ import com.example.myapplication2.network.RetrofitClient
 
 class ProductoActivity : BaseApiActivity() {
 
+    companion object {
+        private const val STOCK_BAJO = 10
+    }
+
     private lateinit var txtBuscar: EditText
     private lateinit var txtSeleccion: TextView
     private lateinit var txtCodigo: EditText
@@ -25,7 +29,6 @@ class ProductoActivity : BaseApiActivity() {
     private lateinit var spCategoria: Spinner
     private lateinit var listaProductos: LinearLayout
 
-    private lateinit var btnBuscar: Button
     private lateinit var btnNuevo: Button
     private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
@@ -40,7 +43,7 @@ class ProductoActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_producto)) return
+        if (!prepararPantalla(R.layout.activity_producto, "Productos", "Inventario, precios y stock.")) return
 
         txtBuscar = findViewById(R.id.txtBuscar)
         txtSeleccion = findViewById(R.id.txtSeleccion)
@@ -53,14 +56,13 @@ class ProductoActivity : BaseApiActivity() {
         spCategoria = findViewById(R.id.spCategoria)
         listaProductos = findViewById(R.id.listaProductos)
 
-        btnBuscar = findViewById(R.id.btnBuscar)
         btnNuevo = findViewById(R.id.btnNuevo)
         btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
         btnListar = findViewById(R.id.btnListar)
 
-        btnBuscar.setOnClickListener { buscarProducto() }
+        buscarAlEscribir(txtBuscar) { buscarProducto() }
         btnNuevo.setOnClickListener { limpiarFormulario() }
         btnGuardar.setOnClickListener { guardarProducto() }
         btnActualizar.setOnClickListener { actualizarProducto() }
@@ -77,7 +79,7 @@ class ProductoActivity : BaseApiActivity() {
     }
 
     override fun botonesAccion(): List<Button> =
-        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
+        listOf(btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
     override fun refrescarBotones() {
         super.refrescarBotones()
@@ -130,6 +132,10 @@ class ProductoActivity : BaseApiActivity() {
             listaProductos,
             visibles,
             esSeleccionado = { it.id == seleccionado?.id },
+            // Mismo límite de poco stock que la aplicación de escritorio
+            resaltar = { producto ->
+                if (producto.stock <= STOCK_BAJO) "Stock: ${producto.stock}" else null
+            },
             texto = { producto ->
                 "#${producto.id}  ${producto.nombre}\n" +
                         "Precio: ${dinero(producto.precioVenta)}   Stock: ${producto.stock}\n" +
@@ -151,15 +157,17 @@ class ProductoActivity : BaseApiActivity() {
 
         val encontrados = productos.filter { coincide(it, filtro) }
 
-        when (encontrados.size) {
-            0 -> {
-                // Evita que quede seleccionado un registro que ya no se ve
+        // Evita que quede seleccionado un registro que ya no se ve
+        seleccionado?.let { actual ->
+            if (actual !in encontrados) {
                 mostrarFormularioNuevo()
                 refrescarBotones()
-                mostrarMensaje("No se encontraron productos con \"$filtro\".", true)
             }
-            1 -> seleccionarProducto(encontrados.first())
-            else -> mostrarInfo("Se encontraron ${encontrados.size} productos. Toca uno para editarlo.")
+        }
+
+        when (encontrados.size) {
+            0 -> mostrarMensaje("No se encontraron productos con \"$filtro\".", true)
+            else -> mostrarInfo("Resultados: ${encontrados.size}. Toca uno para editarlo.")
         }
     }
 

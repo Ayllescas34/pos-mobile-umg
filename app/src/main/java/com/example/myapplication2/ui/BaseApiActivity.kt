@@ -2,19 +2,31 @@ package com.example.myapplication2.ui
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
+import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.util.TypedValue
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ScrollView
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication2.R
 import com.example.myapplication2.session.SessionManager
@@ -32,6 +44,27 @@ import java.util.Locale
  */
 data class Opcion(val id: Int?, val texto: String) {
     override fun toString(): String = texto
+}
+
+/**
+ * Pantalla de borde a borde: el encabezado azul llega hasta la barra de estado
+ * y el contenido se acomoda sobre la barra de navegación y el teclado.
+ */
+fun AppCompatActivity.aplicarBordes() {
+    enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
+
+    val encabezado = findViewById<View?>(R.id.encabezado)
+    val margenSuperior = encabezado?.paddingTop ?: 0
+    val espacio = (12 * resources.displayMetrics.density).toInt()
+
+    ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        val barras = insets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()
+        )
+        v.setPadding(barras.left, 0, barras.right, barras.bottom)
+        encabezado?.updatePadding(top = margenSuperior + barras.top + espacio)
+        insets
+    }
 }
 
 /** Error devuelto por la API con su mensaje ya legible para el usuario. */
@@ -64,14 +97,17 @@ abstract class BaseApiActivity : AppCompatActivity() {
      * Prepara la pantalla. Devuelve false si no hay sesión
      * (en ese caso ya se redirigió al login).
      */
-    protected fun prepararPantalla(layout: Int): Boolean {
-        enableEdgeToEdge()
+    protected fun prepararPantalla(
+        layout: Int,
+        titulo: String? = null,
+        subtitulo: String? = null
+    ): Boolean {
         setContentView(layout)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        aplicarBordes()
+
+        findViewById<TextView?>(R.id.txtTituloPantalla)?.text = titulo
+        findViewById<TextView?>(R.id.txtSubtituloPantalla)?.text = subtitulo
+        findViewById<View?>(R.id.btnAtras)?.setOnClickListener { finish() }
 
         if (!SessionManager.haySesion()) {
             irALogin()
@@ -97,13 +133,16 @@ abstract class BaseApiActivity : AppCompatActivity() {
     protected fun mostrarMensaje(texto: String, esError: Boolean = false) {
         txtEstado.text = texto
         txtEstado.setTextColor(
-            if (esError) Color.parseColor("#C62828") else Color.parseColor("#2E7D32")
+            ContextCompat.getColor(
+                this,
+                if (esError) R.color.pos_peligro else R.color.pos_exito
+            )
         )
     }
 
     protected fun mostrarInfo(texto: String) {
         txtEstado.text = texto
-        txtEstado.setTextColor(Color.parseColor("#455A64"))
+        txtEstado.setTextColor(ContextCompat.getColor(this, R.color.pos_texto_secundario))
     }
 
     /**
@@ -155,7 +194,7 @@ abstract class BaseApiActivity : AppCompatActivity() {
             } finally {
                 solicitudesActivas--
                 if (solicitudesActivas == 0) {
-                    progreso.visibility = View.GONE
+                    progreso.visibility = View.INVISIBLE
                     refrescarBotones()
                 }
             }
@@ -223,12 +262,32 @@ abstract class BaseApiActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Muestra una lista seleccionable dentro del contenedor (compatible con ScrollView). */
+    /** Ejecuta la búsqueda conforme se escribe, como en la aplicación de escritorio. */
+    protected fun buscarAlEscribir(campo: EditText, alCambiar: () -> Unit) {
+        campo.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+
+            override fun afterTextChanged(s: Editable?) = alCambiar()
+        })
+    }
+
+    /** Sube al formulario para ver el registro que se acaba de elegir. */
+    private fun volverArriba() {
+        findViewById<ScrollView?>(R.id.desplazamiento)?.smoothScrollTo(0, 0)
+    }
+
+    /**
+     * Muestra una lista seleccionable dentro del contenedor (compatible con ScrollView).
+     * La primera línea de cada fila va en negrita; `resaltar` marca en rojo un fragmento.
+     */
     protected fun <T> llenarLista(
         contenedor: LinearLayout,
         elementos: List<T>,
         esSeleccionado: (T) -> Boolean,
         texto: (T) -> String,
+        resaltar: (T) -> String? = { null },
         alSeleccionar: (T) -> Unit
     ) {
         contenedor.removeAllViews()
@@ -236,7 +295,8 @@ abstract class BaseApiActivity : AppCompatActivity() {
         if (elementos.isEmpty()) {
             contenedor.addView(TextView(this).apply {
                 setText("No hay registros para mostrar.")
-                setPadding(dp(8), dp(12), dp(8), dp(12))
+                setTextColor(ContextCompat.getColor(context, R.color.pos_texto_secundario))
+                setPadding(dp(4), dp(10), dp(4), dp(10))
             })
             return
         }
@@ -246,24 +306,27 @@ abstract class BaseApiActivity : AppCompatActivity() {
 
         elementos.forEach { elemento ->
             val fila = TextView(this).apply {
-                setText(texto(elemento))
-                textSize = 15f
-                setPadding(dp(12), dp(10), dp(12), dp(10))
+                setText(textoDeFila(texto(elemento), resaltar(elemento)))
+                textSize = 14f
+                setPadding(dp(10), dp(10), dp(10), dp(10))
                 isClickable = true
                 isFocusable = true
 
                 if (esSeleccionado(elemento)) {
-                    setBackgroundColor(Color.parseColor("#33607D8B"))
+                    setBackgroundResource(R.color.pos_seleccion)
                 } else {
                     setBackgroundResource(fondoSeleccion.resourceId)
                 }
 
-                setOnClickListener { alSeleccionar(elemento) }
+                setOnClickListener {
+                    alSeleccionar(elemento)
+                    volverArriba()
+                }
             }
 
             contenedor.addView(fila)
             contenedor.addView(View(this).apply {
-                setBackgroundColor(Color.parseColor("#22000000"))
+                setBackgroundResource(R.color.pos_separador)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, dp(1)
                 )
@@ -271,9 +334,44 @@ abstract class BaseApiActivity : AppCompatActivity() {
         }
     }
 
+    private fun textoDeFila(texto: String, resaltado: String?): CharSequence {
+        val fila = SpannableString(texto)
+        val finPrimeraLinea = texto.indexOf('\n').let { if (it == -1) texto.length else it }
+
+        fila.setSpan(
+            StyleSpan(Typeface.BOLD),
+            0,
+            finPrimeraLinea,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        if (finPrimeraLinea < texto.length) {
+            fila.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.pos_texto_secundario)),
+                finPrimeraLinea,
+                texto.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        val inicio = resaltado?.let { texto.indexOf(it) } ?: -1
+        if (inicio >= 0) {
+            val fin = inicio + resaltado!!.length
+            fila.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this, R.color.pos_peligro)),
+                inicio,
+                fin,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            fila.setSpan(StyleSpan(Typeface.BOLD), inicio, fin, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        return fila
+    }
+
     protected fun configurarSpinner(spinner: Spinner, opciones: List<Opcion>, idSeleccionado: Int? = null) {
-        val adaptador = ArrayAdapter(this, android.R.layout.simple_spinner_item, opciones)
-        adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adaptador = ArrayAdapter(this, R.layout.item_spinner, opciones)
+        adaptador.setDropDownViewResource(R.layout.item_spinner)
         spinner.adapter = adaptador
         seleccionarEnSpinner(spinner, idSeleccionado)
     }

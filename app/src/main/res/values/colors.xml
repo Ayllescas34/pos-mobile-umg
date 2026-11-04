@@ -2,4 +2,21 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Misma paleta que la aplicación de escritorio (Estilo.java) -->
+    <color name="pos_principal">#1F4E79</color>
+    <color name="pos_principal_hover">#286094</color>
+    <color name="pos_lateral">#11263C</color>
+    <color name="pos_lateral_texto">#CBD5E1</color>
+    <color name="pos_secundario">#374151</color>
+    <color name="pos_exito">#2E7D5B</color>
+    <color name="pos_peligro">#B42318</color>
+    <color name="pos_fondo">#F3F5F8</color>
+    <color name="pos_tarjeta">#FFFFFF</color>
+    <color name="pos_texto">#1F2937</color>
+    <color name="pos_texto_secundario">#6B7280</color>
+    <color name="pos_borde">#E2E6EC</color>
+    <color name="pos_campo_lectura">#F3F5F8</color>
+    <color name="pos_seleccion">#DEEAF6</color>
+    <color name="pos_separador">#EEF0F4</color>
 </resources>

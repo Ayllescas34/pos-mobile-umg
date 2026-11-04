@@ -28,7 +28,6 @@ class MainActivity : BaseApiActivity() {
     private lateinit var correo: EditText
     private lateinit var listaClientes: LinearLayout
 
-    private lateinit var btnBuscar: Button
     private lateinit var btnNuevo: Button
     private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
@@ -42,7 +41,7 @@ class MainActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_main)) return
+        if (!prepararPantalla(R.layout.activity_main, "Clientes", "Registra y actualiza los datos de tus clientes.")) return
 
         txtBuscar = findViewById(R.id.txtBuscar)
         txtSeleccion = findViewById(R.id.txtSeleccion)
@@ -53,14 +52,13 @@ class MainActivity : BaseApiActivity() {
         correo = findViewById(R.id.txtCorreo)
         listaClientes = findViewById(R.id.listaClientes)
 
-        btnBuscar = findViewById(R.id.btnBuscar)
         btnNuevo = findViewById(R.id.btnNuevo)
         btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
         btnListar = findViewById(R.id.btnListar)
 
-        btnBuscar.setOnClickListener { buscarCliente() }
+        buscarAlEscribir(txtBuscar) { buscarCliente() }
         btnNuevo.setOnClickListener { limpiarFormulario() }
         btnGuardar.setOnClickListener { guardarCliente() }
         btnActualizar.setOnClickListener { actualizarCliente() }
@@ -76,7 +74,7 @@ class MainActivity : BaseApiActivity() {
     }
 
     override fun botonesAccion(): List<Button> =
-        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
+        listOf(btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
     override fun refrescarBotones() {
         super.refrescarBotones()
@@ -139,15 +137,17 @@ class MainActivity : BaseApiActivity() {
 
         val encontrados = clientes.filter { coincide(it, filtro) }
 
-        when (encontrados.size) {
-            0 -> {
-                // Evita que quede seleccionado un registro que ya no se ve
+        // Evita que quede seleccionado un registro que ya no se ve
+        seleccionado?.let { actual ->
+            if (actual !in encontrados) {
                 mostrarFormularioNuevo()
                 refrescarBotones()
-                mostrarMensaje("No se encontraron clientes con \"$filtro\".", true)
             }
-            1 -> seleccionarCliente(encontrados.first())
-            else -> mostrarInfo("Se encontraron ${encontrados.size} clientes. Toca uno para editarlo.")
+        }
+
+        when (encontrados.size) {
+            0 -> mostrarMensaje("No se encontraron clientes con \"$filtro\".", true)
+            else -> mostrarInfo("Resultados: ${encontrados.size}. Toca uno para editarlo.")
         }
     }
 

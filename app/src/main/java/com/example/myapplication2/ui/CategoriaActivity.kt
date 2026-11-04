@@ -18,7 +18,6 @@ class CategoriaActivity : BaseApiActivity() {
     private lateinit var txtDescripcion: EditText
     private lateinit var listaCategorias: LinearLayout
 
-    private lateinit var btnBuscar: Button
     private lateinit var btnNuevo: Button
     private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
@@ -32,7 +31,7 @@ class CategoriaActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_categoria)) return
+        if (!prepararPantalla(R.layout.activity_categoria, "Categorías", "Organiza tus productos por categoría.")) return
 
         txtBuscar = findViewById(R.id.txtBuscar)
         txtSeleccion = findViewById(R.id.txtSeleccion)
@@ -40,14 +39,13 @@ class CategoriaActivity : BaseApiActivity() {
         txtDescripcion = findViewById(R.id.txtDescripcion)
         listaCategorias = findViewById(R.id.listaCategorias)
 
-        btnBuscar = findViewById(R.id.btnBuscar)
         btnNuevo = findViewById(R.id.btnNuevo)
         btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
         btnListar = findViewById(R.id.btnListar)
 
-        btnBuscar.setOnClickListener { buscarCategoria() }
+        buscarAlEscribir(txtBuscar) { buscarCategoria() }
         btnNuevo.setOnClickListener { limpiarFormulario() }
         btnGuardar.setOnClickListener { guardarCategoria() }
         btnActualizar.setOnClickListener { actualizarCategoria() }
@@ -63,7 +61,7 @@ class CategoriaActivity : BaseApiActivity() {
     }
 
     override fun botonesAccion(): List<Button> =
-        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
+        listOf(btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
     override fun refrescarBotones() {
         super.refrescarBotones()
@@ -127,15 +125,17 @@ class CategoriaActivity : BaseApiActivity() {
             it.nombre.contains(filtro, ignoreCase = true) || it.id.toString() == filtro
         }
 
-        when (encontradas.size) {
-            0 -> {
-                // Evita que quede seleccionado un registro que ya no se ve
+        // Evita que quede seleccionado un registro que ya no se ve
+        seleccionada?.let { actual ->
+            if (actual !in encontradas) {
                 mostrarFormularioNuevo()
                 refrescarBotones()
-                mostrarMensaje("No se encontraron categorías con \"$filtro\".", true)
             }
-            1 -> seleccionarCategoria(encontradas.first())
-            else -> mostrarInfo("Se encontraron ${encontradas.size} categorías. Toca una para editarla.")
+        }
+
+        when (encontradas.size) {
+            0 -> mostrarMensaje("No se encontraron categorías con \"$filtro\".", true)
+            else -> mostrarInfo("Resultados: ${encontradas.size}. Toca uno para editarlo.")
         }
     }
 

@@ -19,6 +19,7 @@ import com.example.myapplication2.model.Usuario
 import com.example.myapplication2.model.Venta
 import com.example.myapplication2.model.VentaRequest
 import com.example.myapplication2.network.RetrofitClient
+import com.google.android.material.tabs.TabLayout
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -50,7 +51,13 @@ class VentaActivity : BaseApiActivity() {
     private lateinit var txtCantidad: EditText
     private lateinit var txtPrecio: EditText
     private lateinit var listaCarrito: LinearLayout
+    private lateinit var txtSubtotal: EditText
+    private lateinit var txtArticulos: TextView
     private lateinit var txtTotal: TextView
+    private lateinit var txtBuscarVentas: EditText
+    private lateinit var tabsVenta: TabLayout
+    private lateinit var panelRegistro: LinearLayout
+    private lateinit var panelConsulta: LinearLayout
     private lateinit var listaVentas: LinearLayout
     private lateinit var panelDetalle: LinearLayout
     private lateinit var txtDetalleVenta: TextView
@@ -76,7 +83,12 @@ class VentaActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_venta)) return
+        if (!prepararPantalla(
+                R.layout.activity_venta,
+                "Ventas",
+                "Registra y consulta las ventas."
+            )
+        ) return
 
         spCliente = findViewById(R.id.spCliente)
         spVendedor = findViewById(R.id.spVendedor)
@@ -88,7 +100,13 @@ class VentaActivity : BaseApiActivity() {
         txtCantidad = findViewById(R.id.txtCantidad)
         txtPrecio = findViewById(R.id.txtPrecio)
         listaCarrito = findViewById(R.id.listaCarrito)
+        txtSubtotal = findViewById(R.id.txtSubtotal)
+        txtArticulos = findViewById(R.id.txtArticulos)
         txtTotal = findViewById(R.id.txtTotal)
+        txtBuscarVentas = findViewById(R.id.txtBuscarVentas)
+        tabsVenta = findViewById(R.id.tabsVenta)
+        panelRegistro = findViewById(R.id.panelRegistro)
+        panelConsulta = findViewById(R.id.panelConsulta)
         listaVentas = findViewById(R.id.listaVentas)
         panelDetalle = findViewById(R.id.panelDetalle)
         txtDetalleVenta = findViewById(R.id.txtDetalleVenta)
@@ -120,10 +138,45 @@ class VentaActivity : BaseApiActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
+        configurarPestanas()
+        buscarAlEscribir(txtCantidad) { actualizarSubtotal() }
+        buscarAlEscribir(txtPrecio) { actualizarSubtotal() }
+        buscarAlEscribir(txtBuscarVentas) { mostrarVentas() }
+
         txtCantidad.setText("1")
         mostrarCarrito()
         cerrarDetalle()
         cargarDatosDesdeApi()
+    }
+
+    private fun configurarPestanas() {
+        tabsVenta.addTab(tabsVenta.newTab().setText("Registrar venta"))
+        tabsVenta.addTab(tabsVenta.newTab().setText("Ventas registradas"))
+
+        tabsVenta.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                val registrar = tab.position == 0
+                panelRegistro.visibility = if (registrar) View.VISIBLE else View.GONE
+                panelConsulta.visibility = if (registrar) View.GONE else View.VISIBLE
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+
+            override fun onTabReselected(tab: TabLayout.Tab) = Unit
+        })
+    }
+
+    private fun actualizarSubtotal() {
+        val cantidad = txtCantidad.text.toString().trim().toIntOrNull()
+        val precio = txtPrecio.text.toString().trim().replace(',', '.').toDoubleOrNull()
+
+        txtSubtotal.setText(
+            if (cantidad == null || precio == null || cantidad <= 0) {
+                ""
+            } else {
+                String.format(Locale.US, "%.2f", cantidad * precio)
+            }
+        )
     }
 
     override fun botonesAccion(): List<Button> = listOf(
@@ -333,9 +386,8 @@ class VentaActivity : BaseApiActivity() {
             }
         )
 
-        val total = carrito.sumOf { it.subtotal }
-        txtTotal.text = "Artículos: ${carrito.sumOf { it.cantidad }}   " +
-                "Total estimado: ${dinero(total)}"
+        txtArticulos.text = "Artículos: ${carrito.sumOf { it.cantidad }}"
+        txtTotal.text = dinero(carrito.sumOf { it.subtotal })
         if (!cargando) refrescarBotones()
     }
 
@@ -452,16 +504,19 @@ class VentaActivity : BaseApiActivity() {
     // ------------------------------------------------------------------
 
     private fun mostrarVentas() {
+        val textoVenta = { venta: Venta ->
+            "Venta #${venta.id}  ${formatearFecha(venta.fechaHora)}\n" +
+                    "Total: ${dinero(venta.total)}   ${venta.metodoPago.orEmpty()}   ${venta.estado.orEmpty()}\n" +
+                    "Cliente: ${venta.cliente ?: "Sin cliente"}\n" +
+                    "Sucursal: ${venta.sucursal ?: "Sin sucursal"}"
+        }
+        val filtro = txtBuscarVentas.text.toString().trim()
+
         llenarLista(
             listaVentas,
-            ventas,
+            ventas.filter { filtro.isEmpty() || textoVenta(it).contains(filtro, ignoreCase = true) },
             esSeleccionado = { it.id == ventaSeleccionada?.id },
-            texto = { venta ->
-                "Venta #${venta.id}  ${formatearFecha(venta.fechaHora)}\n" +
-                        "Total: ${dinero(venta.total)}   ${venta.metodoPago.orEmpty()}   ${venta.estado.orEmpty()}\n" +
-                        "Cliente: ${venta.cliente ?: "Sin cliente"}\n" +
-                        "Sucursal: ${venta.sucursal ?: "Sin sucursal"}"
-            },
+            texto = textoVenta,
             alSeleccionar = { cargarDetalleVenta(it.id) }
         )
     }
@@ -469,7 +524,7 @@ class VentaActivity : BaseApiActivity() {
     private fun cargarDetalleVenta(idVenta: Int) {
         ejecutar("Consultando venta #$idVenta...", "consultar la venta") {
             descargarDetalle(idVenta)
-            mostrarInfo("Detalle de la venta #$idVenta cargado (desplázate hacia abajo).")
+            mostrarInfo("Detalle de la venta #$idVenta cargado.")
         }
     }
 
@@ -584,12 +639,12 @@ class VentaActivity : BaseApiActivity() {
         }
 
         confirmar(
-            "⚠ Anular venta #${venta.id}",
+            "⚠ Eliminar venta #${venta.id}",
             "Esta acción es IRREVERSIBLE.\n\n" +
                     "Se eliminarán las ${venta.detalles.orEmpty().size} línea(s) de la venta " +
                     "(devolviendo su stock) y después la venta completa por ${dinero(venta.total)}.\n\n" +
                     "Hazlo solo si la venta se registró por error.",
-            "Anular venta"
+            "Eliminar venta"
         ) {
             ejecutar("Anulando venta #${venta.id}...", "anular la venta") {
                 val api = RetrofitClient.api
@@ -612,7 +667,7 @@ class VentaActivity : BaseApiActivity() {
                 cerrarDetalle()
                 descargarDatos()
                 mostrarMensaje(
-                    "Venta #${venta.id} anulada. Se devolvió el stock de ${detalles.size} línea(s)."
+                    "Venta #${venta.id} eliminada. Se devolvió el stock de ${detalles.size} línea(s)."
                 )
             }
         }

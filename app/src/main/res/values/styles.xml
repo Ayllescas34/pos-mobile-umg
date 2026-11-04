@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Componentes con el mismo aspecto de la aplicación de escritorio -->
+    <style name="Pos.Tarjeta" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">14dp</item>
+        <item name="android:background">@drawable/bg_tarjeta</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <style name="Pos.TituloTarjeta" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:textColor">@color/pos_texto</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Pos.Etiqueta" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:textColor">@color/pos_secundario</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Pos.Ayuda" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/pos_texto_secundario</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Pos.Campo" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:background">@drawable/bg_campo</item>
+        <item name="android:minHeight">46dp</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:paddingVertical">10dp</item>
+        <item name="android:textColor">@color/pos_texto</item>
+        <item name="android:textColorHint">@color/pos_texto_secundario</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="Pos.Campo.Lectura">
+        <item name="android:background">@drawable/bg_campo_lectura</item>
+        <item name="android:focusable">false</item>
+        <item name="android:cursorVisible">false</item>
+        <item name="android:textColor">@color/pos_texto_secundario</item>
+    </style>
+
+    <style name="Pos.Lista" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">46dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:background">@drawable/bg_spinner</item>
+        <item name="android:paddingEnd">30dp</item>
+    </style>
+
+    <style name="Pos.Boton" parent="Widget.Material3.Button">
+        <item name="android:layout_height">46dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="backgroundTint">@color/boton_principal</item>
+        <item name="android:textColor">@color/boton_texto</item>
+    </style>
+
+    <style name="Pos.Boton.Exito">
+        <item name="backgroundTint">@color/boton_exito</item>
+    </style>
+
+    <style name="Pos.Boton.Peligro">
+        <item name="backgroundTint">@color/boton_peligro</item>
+    </style>
+
+    <style name="Pos.Boton.Secundario" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_height">46dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="strokeColor">@color/pos_borde</item>
+        <item name="android:textColor">@color/pos_principal</item>
+        <item name="backgroundTint">@color/white</item>
+    </style>
+
+    <style name="Pos.Clave" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxStrokeColor">@color/campo_borde</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxBackgroundColor">@color/white</item>
+        <item name="endIconMode">password_toggle</item>
+        <item name="endIconTint">@color/pos_texto_secundario</item>
+        <item name="hintEnabled">false</item>
+    </style>
+</resources>

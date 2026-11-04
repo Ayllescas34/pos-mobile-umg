@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Rojo para acciones destructivas; gris cuando el botón está deshabilitado -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#1F1C1B1F" android:state_enabled="false" />
-    <item android:color="#C62828" />
+    <item android:color="#E5E7EB" android:state_enabled="false" />
+    <item android:color="@color/pos_peligro" />
 </selector>

@@ -38,7 +38,6 @@ class UsuarioActivity : BaseApiActivity() {
     private lateinit var spSucursal: Spinner
     private lateinit var listaUsuarios: LinearLayout
 
-    private lateinit var btnBuscar: Button
     private lateinit var btnNuevo: Button
     private lateinit var btnGuardar: Button
     private lateinit var btnActualizar: Button
@@ -54,7 +53,7 @@ class UsuarioActivity : BaseApiActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prepararPantalla(R.layout.activity_usuario)) return
+        if (!prepararPantalla(R.layout.activity_usuario, "Usuarios", "Vendedores, cajeros y administradores.")) return
 
         txtBuscar = findViewById(R.id.txtBuscar)
         spFiltroRol = findViewById(R.id.spFiltroRol)
@@ -67,14 +66,13 @@ class UsuarioActivity : BaseApiActivity() {
         spSucursal = findViewById(R.id.spSucursal)
         listaUsuarios = findViewById(R.id.listaUsuarios)
 
-        btnBuscar = findViewById(R.id.btnBuscar)
         btnNuevo = findViewById(R.id.btnNuevo)
         btnGuardar = findViewById(R.id.btnGuardar)
         btnActualizar = findViewById(R.id.btnActualizar)
         btnEliminar = findViewById(R.id.btnEliminar)
         btnListar = findViewById(R.id.btnListar)
 
-        btnBuscar.setOnClickListener { buscarUsuario() }
+        buscarAlEscribir(txtBuscar) { buscarUsuario() }
         btnNuevo.setOnClickListener { limpiarFormulario() }
         btnGuardar.setOnClickListener { guardarUsuario() }
         btnActualizar.setOnClickListener { actualizarUsuario() }
@@ -106,7 +104,7 @@ class UsuarioActivity : BaseApiActivity() {
     }
 
     override fun botonesAccion(): List<Button> =
-        listOf(btnBuscar, btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
+        listOf(btnNuevo, btnGuardar, btnActualizar, btnEliminar, btnListar)
 
     override fun refrescarBotones() {
         super.refrescarBotones()
@@ -229,15 +227,17 @@ class UsuarioActivity : BaseApiActivity() {
             return
         }
 
-        when (encontrados.size) {
-            0 -> {
-                // Evita que quede seleccionado un registro que ya no se ve
+        // Evita que quede seleccionado un registro que ya no se ve
+        seleccionado?.let { actual ->
+            if (actual !in encontrados) {
                 mostrarFormularioNuevo()
                 refrescarBotones()
-                mostrarMensaje("No se encontraron usuarios con \"$filtro\".", true)
             }
-            1 -> seleccionarUsuario(encontrados.first())
-            else -> mostrarInfo("Se encontraron ${encontrados.size} usuarios. Toca uno para editarlo.")
+        }
+
+        when (encontrados.size) {
+            0 -> mostrarMensaje("No se encontraron usuarios con \"$filtro\".", true)
+            else -> mostrarInfo("Resultados: ${encontrados.size}. Toca uno para editarlo.")
         }
     }
 

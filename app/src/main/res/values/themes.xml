@@ -1,9 +1,22 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.MyApplication2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.MyApplication2" parent="Theme.Material3.Light.NoActionBar">
     </style>
 
-    <style name="Theme.MyApplication2" parent="Base.Theme.MyApplication2" />
+    <style name="Theme.MyApplication2" parent="Base.Theme.MyApplication2">
+        <item name="colorPrimary">@color/pos_principal</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/pos_seleccion</item>
+        <item name="colorOnPrimaryContainer">@color/pos_principal</item>
+        <item name="colorSecondary">@color/pos_principal</item>
+        <item name="colorSurface">@color/pos_tarjeta</item>
+        <item name="colorSurfaceContainerHigh">@color/pos_tarjeta</item>
+        <item name="colorOnSurface">@color/pos_texto</item>
+        <item name="colorOnSurfaceVariant">@color/pos_texto_secundario</item>
+        <item name="colorOutline">@color/pos_borde</item>
+        <item name="colorError">@color/pos_peligro</item>
+        <item name="android:colorBackground">@color/pos_fondo</item>
+        <item name="android:textColorPrimary">@color/pos_texto</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
 </resources>
