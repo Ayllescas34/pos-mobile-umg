@@ -15,8 +15,12 @@ object RetrofitClient {
     // Teléfono físico por USB: ejecutar antes "adb reverse tcp:3000 tcp:3000".
     private const val URL_DISPOSITIVO_USB = "http://127.0.0.1:${BuildConfig.API_PUERTO}/"
 
-    val BASE_URL: String =
-        if (esEmulador()) URL_EMULADOR else URL_DISPOSITIVO_USB
+    // pos.api.url (por ejemplo un túnel) tiene prioridad sobre la red local.
+    val BASE_URL: String = when {
+        BuildConfig.API_URL.isNotBlank() -> BuildConfig.API_URL.trimEnd('/') + "/"
+        esEmulador() -> URL_EMULADOR
+        else -> URL_DISPOSITIVO_USB
+    }
 
     // BASIC no imprime los cuerpos, así las contraseñas no llegan a logcat.
     private val logginInterceptor = HttpLoggingInterceptor().apply {

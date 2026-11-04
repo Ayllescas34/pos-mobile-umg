@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Puerto local de la API: se cambia con pos.api.puerto en local.properties
+// API: pos.api.url (dirección completa, por ejemplo un túnel) o pos.api.puerto
+// (puerto local) en local.properties
 val propiedadesLocales = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }
         ?.inputStream()?.use { load(it) }
@@ -29,6 +30,12 @@ android {
             "String",
             "API_PUERTO",
             "\"${propiedadesLocales.getProperty("pos.api.puerto", "3000")}\""
+        )
+
+        buildConfigField(
+            "String",
+            "API_URL",
+            "\"${propiedadesLocales.getProperty("pos.api.url", "")}\""
         )
     }
 
