@@ -15,10 +15,6 @@ import com.example.myapplication2.model.UsuarioRequest
 import com.example.myapplication2.network.RetrofitClient
 import com.example.myapplication2.session.SessionManager
 
-/**
- * Usuarios del sistema. Los vendedores y cajeros son usuarios con
- * rol VENDEDOR o CAJERO (no existe un endpoint de vendedores).
- */
 class UsuarioActivity : BaseApiActivity() {
 
     companion object {

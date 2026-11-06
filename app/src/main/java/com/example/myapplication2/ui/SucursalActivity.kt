@@ -123,7 +123,6 @@ class SucursalActivity : BaseApiActivity() {
 
         val encontradas = sucursales.filter { coincide(it, filtro) }
 
-        // Evita que quede seleccionado un registro que ya no se ve
         seleccionada?.let { actual ->
             if (actual !in encontradas) {
                 mostrarFormularioNuevo()

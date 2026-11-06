@@ -570,7 +570,7 @@ class VentaActivity : BaseApiActivity() {
         if (!cargando) refrescarBotones()
     }
 
-    /** POST /api/detalles-ventas: descuenta stock y suma al total de la venta. */
+
     private fun agregarDetalleAVenta() {
         val venta = ventaSeleccionada ?: run {
             mostrarMensaje("Selecciona una venta registrada.", true)
@@ -606,7 +606,6 @@ class VentaActivity : BaseApiActivity() {
         }
     }
 
-    /** DELETE /api/detalles-ventas/{id}: devuelve stock y reduce el total. */
     private fun eliminarDetalle(venta: Venta, detalle: DetalleVenta) {
         confirmar(
             "Eliminar línea de la venta",
@@ -627,11 +626,7 @@ class VentaActivity : BaseApiActivity() {
         }
     }
 
-    /**
-     * El backend borra la venta y sus detalles en cascada SIN devolver stock.
-     * Para no perder inventario, se eliminan primero los detalles uno por uno
-     * (DELETE /api/detalles-ventas/{id} sí devuelve stock) y al final la venta.
-     */
+
     private fun anularVenta() {
         val venta = ventaSeleccionada ?: run {
             mostrarMensaje("Selecciona una venta registrada.", true)
@@ -639,7 +634,7 @@ class VentaActivity : BaseApiActivity() {
         }
 
         confirmar(
-            "⚠ Eliminar venta #${venta.id}",
+            "Eliminar venta #${venta.id}",
             "Esta acción es IRREVERSIBLE.\n\n" +
                     "Se eliminarán las ${venta.detalles.orEmpty().size} línea(s) de la venta " +
                     "(devolviendo su stock) y después la venta completa por ${dinero(venta.total)}.\n\n" +

@@ -234,7 +234,6 @@ class ProductoActivity : BaseApiActivity() {
             return null
         }
 
-        // El código de barras es único en la base de datos
         if (codigo.isNotEmpty() &&
             productos.any { it.id != idActual && it.codigoBarras.equals(codigo, ignoreCase = true) }
         ) {

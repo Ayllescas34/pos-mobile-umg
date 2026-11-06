@@ -38,18 +38,12 @@ import retrofit2.Response
 import java.io.IOException
 import java.util.Locale
 
-/**
- * Opción de un Spinner: muestra un texto amigable y guarda el ID interno.
- * Un id null representa "sin selección" (el backend acepta null).
- */
+
 data class Opcion(val id: Int?, val texto: String) {
     override fun toString(): String = texto
 }
 
-/**
- * Pantalla de borde a borde: el encabezado azul llega hasta la barra de estado
- * y el contenido se acomoda sobre la barra de navegación y el teclado.
- */
+
 fun AppCompatActivity.aplicarBordes() {
     enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
 
@@ -67,14 +61,10 @@ fun AppCompatActivity.aplicarBordes() {
     }
 }
 
-/** Error devuelto por la API con su mensaje ya legible para el usuario. */
+
 class ApiException(val codigo: Int, mensaje: String) : Exception(mensaje)
 
-/**
- * Comportamiento común de las pantallas que consumen la API:
- * insets, verificación de sesión, progreso, manejo de errores,
- * confirmaciones, listas seleccionables y Spinners.
- */
+
 abstract class BaseApiActivity : AppCompatActivity() {
 
     protected lateinit var progreso: ProgressBar

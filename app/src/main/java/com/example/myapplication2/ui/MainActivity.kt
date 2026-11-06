@@ -15,7 +15,6 @@ import com.example.myapplication2.network.RetrofitClient
 class MainActivity : BaseApiActivity() {
 
     companion object {
-        // NIT genérico de "Consumidor Final"; puede repetirse
         private const val NIT_CONSUMIDOR_FINAL = "CF"
     }
 

@@ -145,7 +145,7 @@ interface ApiService {
     ): Response<ResponseBody>
 
     // ==============================
-    // VENTAS (no existe PUT)
+    // VENTAS
     // ==============================
 
     @GET("api/ventas")
@@ -161,14 +161,13 @@ interface ApiService {
         @Body venta: VentaRequest
     ): Response<ResponseBody>
 
-    // Atención: el backend borra los detalles en cascada SIN devolver stock.
     @DELETE("api/ventas/{id}")
     suspend fun eliminarVenta(
         @Path("id") idVenta: Int
     ): Response<ResponseBody>
 
     // ==============================
-    // DETALLES DE VENTA (no existe PUT)
+    // DETALLES DE VENTA
     // ==============================
 
     @GET("api/detalles-ventas/venta/{idVenta}")
@@ -176,13 +175,13 @@ interface ApiService {
         @Path("idVenta") idVenta: Int
     ): DetallesVentaResponse
 
-    // Descuenta stock y aumenta el total de la venta
+
     @POST("api/detalles-ventas")
     suspend fun agregarDetalleVenta(
         @Body detalle: DetalleVentaRequest
     ): Response<ResponseBody>
 
-    // Devuelve stock y reduce el total de la venta
+
     @DELETE("api/detalles-ventas/{id}")
     suspend fun eliminarDetalleVenta(
         @Path("id") idDetalle: Int

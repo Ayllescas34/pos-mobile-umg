@@ -225,8 +225,7 @@ class CategoriaActivity : BaseApiActivity() {
             return
         }
 
-        // La base de datos deja los productos sin categoría (ON DELETE SET NULL),
-        // por eso se avisa cuántos productos se verían afectados.
+
         ejecutar("Revisando productos relacionados...", "revisar los productos") {
             val relacionados = RetrofitClient.api.obtenerProductos().data
                 .count { it.idCategoria == categoria.id }

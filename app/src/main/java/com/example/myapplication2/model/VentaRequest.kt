@@ -21,7 +21,6 @@ data class VentaRequest(
     val detalles: List<DetalleVentaItem>
 )
 
-// Línea del carrito enviada al crear la venta (el servidor calcula subtotal y total)
 data class DetalleVentaItem(
     @SerializedName("id_producto")
     val idProducto: Int,
